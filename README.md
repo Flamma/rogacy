@@ -51,4 +51,4 @@ This project was created entirely through AI assistance using OpenCode with the 
 
 ## License
 
-This project is an experimental game development exercise and is provided as-is for educational purposes.
+This project is licensed under the GNU General Public License v3.0 (GPL 3) - see the LICENSE file for details. This ensures that the game remains free and open source software.
