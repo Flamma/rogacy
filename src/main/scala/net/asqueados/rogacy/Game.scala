@@ -8,7 +8,7 @@ object Game {
   private val terminal = TerminalBuilder.builder().system(true).build()
   terminal.enterRawMode()
   private val inputReader = terminal.reader()
-  def createInitialMap(): Map = {
+  def createInitialMap(): LevelMap = {
     val width = 20
     val height = 10
     val baseGrid = Vector.fill(height, width)('.')
@@ -20,7 +20,7 @@ object Game {
         else cell
       }
     }
-    Map(withWalls, width, height)
+    LevelMap(withWalls, width, height)
   }
 
   def createInitialEntities(): Vector[Entity] = {
@@ -30,16 +30,22 @@ object Game {
     )
   }
 
-  def movePlayer(player: Player, dx: Int, dy: Int, map: Map): Option[Player] = {
+  def movePlayer(
+    player: Player, 
+    dx: Int, 
+    dy: Int, 
+    map: LevelMap, 
+    entities: Vector[Entity]
+  ): Option[Player] = {
     val newPos = Position(player.position.x + dx, player.position.y + dy)
-    if (map.isWalkable(newPos.x, newPos.y)) Some(player.copy(position = newPos)) else None
+    if (map.isWalkable(newPos.x, newPos.y, entities)) Some(player.copy(position = newPos)) else None
   }
 
   def handleInput(state: GameState, input: Char): GameState = input match {
-    case 'w' => state.copy(player = movePlayer(state.player, 0, -1, state.map).getOrElse(state.player))
-    case 's' => state.copy(player = movePlayer(state.player, 0, 1, state.map).getOrElse(state.player))
-    case 'a' => state.copy(player = movePlayer(state.player, -1, 0, state.map).getOrElse(state.player))
-    case 'd' => state.copy(player = movePlayer(state.player, 1, 0, state.map).getOrElse(state.player))
+    case 'w' => state.copy(player = movePlayer(state.player, 0, -1, state.map, state.entities).getOrElse(state.player))
+    case 's' => state.copy(player = movePlayer(state.player, 0, 1, state.map, state.entities).getOrElse(state.player))
+    case 'a' => state.copy(player = movePlayer(state.player, -1, 0, state.map, state.entities).getOrElse(state.player))
+    case 'd' => state.copy(player = movePlayer(state.player, 1, 0, state.map, state.entities).getOrElse(state.player))
     case 'q' => state.copy(running = false)
     case _ => state
   }

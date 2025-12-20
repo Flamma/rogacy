@@ -12,7 +12,7 @@ class GameStateTest extends AnyFlatSpec with Matchers {
         else cell
       }
     }
-    val gameMap = Map(withWalls, 20, 10)
+    val gameMap = LevelMap(withWalls, 20, 10)
     val player = Player(Position(1, 1))
     val entities = Vector(Entity(Position(5, 5), 'g'))
     val gameState = GameState(gameMap, player, entities, true)
@@ -25,7 +25,7 @@ class GameStateTest extends AnyFlatSpec with Matchers {
 
   it should "be immutable" in {
     val grid = Vector.fill(10, 20)('.')
-    val gameMap = Map(grid, 20, 10)
+    val gameMap = LevelMap(grid, 20, 10)
     val player = Player(Position(0, 0))
     val entities = Vector.empty[Entity]
     val gameState = GameState(gameMap, player, entities)
