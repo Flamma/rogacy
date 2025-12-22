@@ -9,8 +9,8 @@ object Game {
   terminal.enterRawMode()
   private val inputReader = terminal.reader()
   def createInitialMap(): LevelMap = {
-    val width = 20
-    val height = 10
+    val width = 80
+    val height = 20
     val baseGrid = Vector.fill(height, width)('.')
     val withWalls = baseGrid.zipWithIndex.map { case (row, y) =>
       row.zipWithIndex.map { case (cell, x) =>
