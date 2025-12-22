@@ -8,7 +8,7 @@ class MessageRenderingTest extends AnyFlatSpec with Matchers {
     val grid = Vector.fill(10, 20)('.')
     val map = LevelMap(grid, 20, 10)
     val player = Player(Position(1, 1))
-    val entities = Vector.empty[Entity]
+    val entities = Vector.empty[Personaje]
     val gameState = GameState(map, player, entities, true, Vector("This is a very long message that exceeds the width of the map"), 0)
     
     // Test that the message is longer than the map width
@@ -26,7 +26,7 @@ class MessageRenderingTest extends AnyFlatSpec with Matchers {
     val grid = Vector.fill(10, 20)('.')
     val map = LevelMap(grid, 20, 10)
     val player = Player(Position(1, 1))
-    val entities = Vector.empty[Entity]
+    val entities = Vector.empty[Personaje]
     val initialGameState = GameState(map, player, entities)
     
     // Test adding a message
@@ -44,7 +44,7 @@ class MessageRenderingTest extends AnyFlatSpec with Matchers {
     val grid = Vector.fill(10, 20)('.')
     val map = LevelMap(grid, 20, 10)
     val player = Player(Position(1, 1))
-    val entities = Vector(Entity(Position(2, 1), 'g')) // Entity at position (2,1)
+    val entities = Vector(Personaje("Goblin", 'g', Position(2, 1))) // Entity at position (2,1)
     
     // Test that player can move to position (2,1) but will get interaction message
     val (playerOption, messageOption) = Game.movePlayer(player, 1, 0, map, entities)

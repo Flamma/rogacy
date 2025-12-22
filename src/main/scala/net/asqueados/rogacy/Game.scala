@@ -23,10 +23,10 @@ object Game {
     LevelMap(withWalls, width, height)
   }
 
-  def createInitialEntities(): Vector[Entity] = {
+  def createInitialEntities(): Vector[Personaje] = {
     Vector(
-      Entity(Position(5, 3), 'g'),  // goblin
-      Entity(Position(10, 6), 'p')  // potion
+      Personaje("Goblin", 'g', Position(5, 3)),
+      Personaje("Potion", 'p', Position(10, 6))
     )
   }
 
@@ -35,23 +35,18 @@ object Game {
     dx: Int, 
     dy: Int, 
     map: LevelMap, 
-    entities: Vector[Entity]
+    entities: Vector[Personaje]
   ): (Option[Player], Option[String]) = {
     val newPos = Position(player.position.x + dx, player.position.y + dy)
     
     // Check if there's an entity at the new position
     entities.find(_.position == newPos) match {
       case Some(entity) =>
-        // Player bumped into an entity, create interaction message
-        val interactionMessage = entity.char match {
-          case 'g' => "You bump into the goblin!"
-          case 'p' => "You bump into the potion!"
-          case c => s"You bump into the $c!"
-        }
-        (None, Some(interactionMessage)) // Player doesn't move, but there's a message
+        // Player bumped into an entity, use its interact method
+        (None, Some(entity.interact()))
       case None =>
         // No entity at the new position, check if it's walkable
-        if (map.isWalkable(newPos.x, newPos.y)) {
+        if (map.isWalkable(newPos.x, newPos.y, entities)) {
           (Some(player.copy(position = newPos)), None) // Player moves
         } else {
           (None, None) // Player doesn't move, no message

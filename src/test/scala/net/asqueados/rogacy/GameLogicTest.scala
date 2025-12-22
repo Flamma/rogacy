@@ -14,11 +14,11 @@ class GameLogicTest extends AnyFlatSpec with Matchers {
     }
     val gameMap = LevelMap(withWalls, 20, 10)
     val player = Player(Position(5, 5))
-    val entities = Vector.empty[Entity]  // No entities for this test
+    val entities = Vector.empty[Personaje]  // No entities for this test
     
-    val movedPlayer = Game.movePlayer(player, 0, -1, gameMap, entities)
-    movedPlayer shouldBe defined
-    movedPlayer.get.position shouldEqual Position(5, 4)
+    val movedPlayerTuple = Game.movePlayer(player, 0, -1, gameMap, entities)
+    movedPlayerTuple._1 shouldBe defined
+    movedPlayerTuple._1.get.position shouldEqual Position(5, 4)
   }
 
   it should "correctly move player down to valid position" in {
@@ -31,12 +31,12 @@ class GameLogicTest extends AnyFlatSpec with Matchers {
     }
     val gameMap = LevelMap(withWalls, 20, 10)
     val player = Player(Position(5, 5))
-    val entities = Vector.empty[Entity]  // No entities for this test
+    val entities = Vector.empty[Personaje]  // No entities for this test
     
     // Test moving down to (5,6) which should be walkable
-    val movedPlayer = Game.movePlayer(player, 0, 1, gameMap, entities)
-    movedPlayer shouldBe defined
-    movedPlayer.get.position shouldEqual Position(5, 6)
+    val movedPlayerTuple = Game.movePlayer(player, 0, 1, gameMap, entities)
+    movedPlayerTuple._1 shouldBe defined
+    movedPlayerTuple._1.get.position shouldEqual Position(5, 6)
   }
 
   it should "correctly move player left to valid position" in {
@@ -49,12 +49,12 @@ class GameLogicTest extends AnyFlatSpec with Matchers {
     }
     val gameMap = LevelMap(withWalls, 20, 10)
     val player = Player(Position(5, 5))
-    val entities = Vector.empty[Entity]  // No entities for this test
+    val entities = Vector.empty[Personaje]  // No entities for this test
     
     // Test moving left to (4,5) which should be walkable
-    val movedPlayer = Game.movePlayer(player, -1, 0, gameMap, entities)
-    movedPlayer shouldBe defined
-    movedPlayer.get.position shouldEqual Position(4, 5)
+    val movedPlayerTuple = Game.movePlayer(player, -1, 0, gameMap, entities)
+    movedPlayerTuple._1 shouldBe defined
+    movedPlayerTuple._1.get.position shouldEqual Position(4, 5)
   }
 
   it should "correctly move player right to valid position" in {
@@ -67,12 +67,12 @@ class GameLogicTest extends AnyFlatSpec with Matchers {
     }
     val gameMap = LevelMap(withWalls, 20, 10)
     val player = Player(Position(5, 5))
-    val entities = Vector.empty[Entity]  // No entities for this test
+    val entities = Vector.empty[Personaje]  // No entities for this test
     
     // Test moving right to (6,5) which should be walkable
-    val movedPlayer = Game.movePlayer(player, 1, 0, gameMap, entities)
-    movedPlayer shouldBe defined
-    movedPlayer.get.position shouldEqual Position(6, 5)
+    val movedPlayerTuple = Game.movePlayer(player, 1, 0, gameMap, entities)
+    movedPlayerTuple._1 shouldBe defined
+    movedPlayerTuple._1.get.position shouldEqual Position(6, 5)
   }
 
   it should "not move player into walls" in {
@@ -85,10 +85,10 @@ class GameLogicTest extends AnyFlatSpec with Matchers {
     }
     val gameMap = LevelMap(withWalls, 20, 10)
     val player = Player(Position(5, 5))
-    val entities = Vector.empty[Entity]  // No entities for this test
+    val entities = Vector.empty[Personaje]  // No entities for this test
     
-    val movedPlayer = Game.movePlayer(player, 0, -1, gameMap, entities)
-    movedPlayer shouldBe None
+    val movedPlayerTuple = Game.movePlayer(player, 0, -1, gameMap, entities)
+    movedPlayerTuple._1 shouldBe None
   }
 
   it should "not move player into entities" in {
@@ -101,10 +101,10 @@ class GameLogicTest extends AnyFlatSpec with Matchers {
     }
     val gameMap = LevelMap(withWalls, 20, 10)
     val player = Player(Position(5, 5))
-    val entities = Vector(Entity(Position(5, 4), 'g'))  // Entity at target position
+    val entities = Vector(Personaje("Goblin", 'g', Position(5, 4)))  // Entity at target position
     
-    val movedPlayer = Game.movePlayer(player, 0, -1, gameMap, entities)
-    movedPlayer shouldBe None
+    val movedPlayerTuple = Game.movePlayer(player, 0, -1, gameMap, entities)
+    movedPlayerTuple._1 shouldBe None
   }
 
   it should "handle input correctly for movement" in {
@@ -117,7 +117,7 @@ class GameLogicTest extends AnyFlatSpec with Matchers {
     }
     val gameMap = LevelMap(withWalls, 20, 10)
     val player = Player(Position(5, 5))
-    val entities = Vector(Entity(Position(2, 2), 'g'))
+    val entities = Vector(Personaje("Goblin", 'g', Position(2, 2)))
     val initialState = GameState(gameMap, player, entities)
     
     // Test moving up

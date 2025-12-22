@@ -14,7 +14,7 @@ class GameStateTest extends AnyFlatSpec with Matchers {
     }
     val gameMap = LevelMap(withWalls, 20, 10)
     val player = Player(Position(1, 1))
-    val entities = Vector(Entity(Position(5, 5), 'g'))
+    val entities = Vector(Personaje("Goblin", 'g', Position(5, 5)))
     val gameState = GameState(gameMap, player, entities, true)
     
     gameState.map shouldEqual gameMap
@@ -27,7 +27,7 @@ class GameStateTest extends AnyFlatSpec with Matchers {
     val grid = Vector.fill(10, 20)('.')
     val gameMap = LevelMap(grid, 20, 10)
     val player = Player(Position(0, 0))
-    val entities = Vector.empty[Entity]
+    val entities = Vector.empty[Personaje]
     val gameState = GameState(gameMap, player, entities)
     
     // This would cause compilation error if GameState was mutable
