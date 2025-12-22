@@ -8,6 +8,12 @@ object Game {
   private val terminal = TerminalBuilder.builder().system(true).build()
   terminal.enterRawMode()
   private val inputReader = terminal.reader()
+  
+  private val colorsSupported = {
+    val maxColors = terminal.getNumericCapability(org.jline.utils.InfoCmp.Capability.max_colors)
+    maxColors != null && maxColors >= 8
+  }
+
   def createInitialMap(): LevelMap = {
     val width = 80
     val height = 20
@@ -25,8 +31,8 @@ object Game {
 
   def createInitialEntities(): Vector[Personaje] = {
     Vector(
-      Personaje("Goblin", 'g', Position(5, 3)),
-      Personaje("Potion", 'p', Position(10, 6))
+      Personaje("Goblin", 'g', Position(5, 3), Colors.Green),
+      Personaje("Potion", 'p', Position(10, 6), Colors.Cyan)
     )
   }
 
@@ -158,7 +164,7 @@ object Game {
     renderMessages(state)
     
     // Render map
-    println(state.map.render(state.player, state.entities))
+    println(state.map.render(state.player, state.entities, colorsSupported))
     println("Move with WASD, SPACE for messages, Q to quit:")
   }
   

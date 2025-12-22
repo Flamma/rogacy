@@ -19,13 +19,11 @@ class PersonajeTest extends AnyFlatSpec with Matchers {
     // personaje.symbol = 'm' // This line would not compile
   }
 
-  it should "generate correct interaction message" in {
-    val goblin = Personaje("Goblin", 'g', Position(1, 1))
-    val potion = Personaje("Potion", 'p', Position(2, 2))
-    val orc = Personaje("Orc", 'o', Position(3, 3))
+  it should "generate correct interaction message with colors" in {
+    val goblin = Personaje("Goblin", 'g', Position(1, 1), Colors.Green)
+    val potion = Personaje("Potion", 'p', Position(2, 2), Colors.Cyan)
 
-    goblin.interact() shouldEqual "You bump into the goblin!"
-    potion.interact() shouldEqual "You bump into the potion!"
-    orc.interact() shouldEqual "You bump into the orc!"
+    goblin.interact() shouldEqual s"You bump into the ${Colors.Green}goblin${Colors.Reset}!"
+    potion.interact() shouldEqual s"You bump into the ${Colors.Cyan}potion${Colors.Reset}!"
   }
 }

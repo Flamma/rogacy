@@ -56,4 +56,15 @@ class LevelMapTest extends AnyFlatSpec with Matchers {
     rendered should include("#")
     rendered should include("g")
   }
+
+  it should "render with colors when enabled" in {
+    val grid = Vector.fill(5, 5)('.')
+    val gameMap = LevelMap(grid, 5, 5)
+    val player = Player(Position(1, 1), color = Colors.Green)
+    val entities = Vector(Personaje("Goblin", 'g', Position(3, 3), color = Colors.Red))
+    
+    val rendered = gameMap.render(player, entities, colorsEnabled = true)
+    rendered should include(Colors.Green + "@" + Colors.Reset)
+    rendered should include(Colors.Red + "g" + Colors.Reset)
+  }
 }
