@@ -9,11 +9,8 @@ case class LevelMap(grid: Vector[Vector[Char]], width: Int, height: Int) {
   }
 
   def isWalkable(x: Int, y: Int, entities: Vector[Entity] = Vector.empty): Boolean = {
-    if (getTile(x, y) == '#') false
-    else {
-      // Check if there's an entity at this position
-      !entities.exists(_.position == Position(x, y))
-    }
+    // Check if the tile itself is walkable (not a wall)
+    getTile(x, y) != '#'
   }
 
   def render(player: Player, entities: Vector[Entity]): String = {
@@ -25,4 +22,15 @@ case class LevelMap(grid: Vector[Vector[Char]], width: Int, height: Int) {
   }
 }
 
-case class GameState(map: LevelMap, player: Player, entities: Vector[Entity], running: Boolean = true)
+case class GameState(
+  map: LevelMap, 
+  player: Player, 
+  entities: Vector[Entity], 
+  running: Boolean = true,
+  messages: Vector[String] = Vector("Welcome to Rogacy!"),
+  currentMessagePage: Int = 0
+) {
+  def addMessage(message: String): GameState = {
+    this.copy(messages = messages :+ message, currentMessagePage = 0)
+  }
+}
