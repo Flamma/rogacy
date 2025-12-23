@@ -34,10 +34,10 @@ object DungeonGenerator {
 
     var rooms = scala.collection.immutable.Vector.empty[Room]
     val maxRooms = 15
-    val minRoomSize = 5
+    val minRoomSize = 3 // Smaller min room size for reliability
     val maxRoomSize = 12
 
-    for (_ <- 0 until 50) { // Try 50 times to place rooms
+    for (_ <- 0 until 100) { // More attempts to place rooms
       if (rooms.size < maxRooms) {
         val w = random.nextInt(scala.math.max(1, maxRoomSize - minRoomSize + 1)) + minRoomSize
         val h = random.nextInt(scala.math.max(1, maxRoomSize - minRoomSize + 1)) + minRoomSize
@@ -90,8 +90,8 @@ object DungeonGenerator {
     }
     
     // Place stairs
-    var upPos = Position(width/2, height/2)
-    var downPos = Position(width/2, height/2)
+    var upPos = Position(1, 1)
+    var downPos = Position(width - 2, height - 2)
 
     if (rooms.size >= 2) {
       val possiblePairs = for {
@@ -108,13 +108,21 @@ object DungeonGenerator {
         rooms.flatMap(r1 => rooms.map(r2 => (r1, r2)))
           .maxBy { case (r1, r2) => scala.math.abs(r1.centerX - r2.centerX) }
       }
-      
       upPos = Position(roomUp.centerX, roomUp.centerY)
       downPos = Position(roomDown.centerX, roomDown.centerY)
-      
-      grid = grid.updated(upPos.y, grid(upPos.y).updated(upPos.x, '<'))
-      grid = grid.updated(downPos.y, grid(downPos.y).updated(downPos.x, '>'))
+    } else if (rooms.size == 1) {
+      val r = rooms.head
+      upPos = Position(r.x, r.y)
+      downPos = Position(r.x + r.w - 1, r.y + r.h - 1)
+    } else {
+      // Emergency floor carving if no rooms
+      grid = grid.updated(upPos.y, grid(upPos.y).updated(upPos.x, '.'))
+      grid = grid.updated(downPos.y, grid(downPos.y).updated(downPos.x, '.'))
     }
+    
+    // Always force stairs onto the grid
+    grid = grid.updated(upPos.y, grid(upPos.y).updated(upPos.x, '<'))
+    grid = grid.updated(downPos.y, grid(downPos.y).updated(downPos.x, '>'))
     
     // Place some entities
     val entities = if (rooms.size > 1) {
