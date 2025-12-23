@@ -154,6 +154,22 @@ class GameLogicTest extends AnyFlatSpec with Matchers {
     // Test moving right
     val newStateD = Game.handleInput(initialState, 'd')
     newStateD.player.position shouldEqual Position(6, 5)
+
+    // Test numpad movement
+    val newState8 = Game.handleInput(initialState, '8')
+    newState8.player.position shouldEqual Position(5, 4)
+
+    val newState7 = Game.handleInput(initialState, '7')
+    newState7.player.position shouldEqual Position(4, 4)
+
+    val newState9 = Game.handleInput(initialState, '9')
+    newState9.player.position shouldEqual Position(6, 4)
+
+    val newState1 = Game.handleInput(initialState, '1')
+    newState1.player.position shouldEqual Position(4, 6)
+
+    val newState3 = Game.handleInput(initialState, '3')
+    newState3.player.position shouldEqual Position(6, 6)
     
     // Test quit
     val newStateQ = Game.handleInput(initialState, 'q')

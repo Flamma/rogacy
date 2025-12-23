@@ -32,8 +32,7 @@ object Game {
           val newMap = state.map.updateTile(newPos.x, newPos.y, '\'')
           state.copy(map = newMap).addMessage("You open the door.")
         } else if (state.map.isWalkable(newPos.x, newPos.y, state.entities)) {
-          val dirStr = if (dx > 0) "right" else if (dx < 0) "left" else if (dy > 0) "down" else "up"
-          state.copy(player = state.player.copy(position = newPos)).addMessage(s"You moved $dirStr.")
+          state.copy(player = state.player.copy(position = newPos))
         } else {
           state
         }
@@ -41,10 +40,15 @@ object Game {
   }
 
   def handleInput(state: GameState, input: Char): GameState = input match {
-    case 'w' => movePlayer(state, 0, -1)
-    case 's' => movePlayer(state, 0, 1)
-    case 'a' => movePlayer(state, -1, 0)
-    case 'd' => movePlayer(state, 1, 0)
+    case 'w' | '8' => movePlayer(state, 0, -1)
+    case 's' | '2' => movePlayer(state, 0, 1)
+    case 'a' | '4' => movePlayer(state, -1, 0)
+    case 'd' | '6' => movePlayer(state, 1, 0)
+    case '7' => movePlayer(state, -1, -1)
+    case '9' => movePlayer(state, 1, -1)
+    case '1' => movePlayer(state, -1, 1)
+    case '3' => movePlayer(state, 1, 1)
+    case '5' => state // Wait/Pass turn
     case '<' => handleStairs(state, isUp = true)
     case '>' => handleStairs(state, isUp = false)
     case ' ' => handleMessagePagination(state)
@@ -100,7 +104,7 @@ object Game {
     
     // Render map
     println(state.map.render(state.player, state.entities, colorsSupported))
-    println(s"Level: ${state.depth} | WASD: Move, < / >: Stairs, SPACE: Msg, Q: Quit")
+    println(s"Level: ${state.depth} | WASD/Numpad: Move, < / >: Stairs, SPACE: Msg, Q: Quit")
   }
   
   def renderMessages(state: GameState): Unit = {
