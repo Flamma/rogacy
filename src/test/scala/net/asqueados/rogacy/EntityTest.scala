@@ -19,7 +19,7 @@ class PersonajeTest extends AnyFlatSpec with Matchers {
     // personaje.symbol = 'm' // This line would not compile
   }
 
-  it should "generate correct interaction message with colors" in {
+  it should "generate correct interaction message" in {
     val goblin = Personaje("Goblin", 'g', Position(1, 1), Colors.Green)
     val potion = Personaje("Potion", 'p', Position(2, 2), Colors.Cyan)
 
