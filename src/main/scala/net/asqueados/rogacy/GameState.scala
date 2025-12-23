@@ -10,6 +10,7 @@ object Colors {
   val Cyan = "\u001b[36m"
   val White = "\u001b[37m"
   val BrightWhite = "\u001b[97m"
+  val Brown = "\u001b[33m"
 }
 
 case class Position(x: Int, y: Int)
@@ -23,11 +24,17 @@ case class LevelMap(grid: Vector[Vector[Char]], width: Int, height: Int) {
     if (x >= 0 && x < width && y >= 0 && y < height) grid(y)(x) else '#'
   }
 
+  def updateTile(x: Int, y: Int, tile: Char): LevelMap = {
+    if (x >= 0 && x < width && y >= 0 && y < height) {
+      val newGrid = grid.updated(y, grid(y).updated(x, tile))
+      this.copy(grid = newGrid)
+    } else this
+  }
+
   def isWalkable(x: Int, y: Int, entities: Vector[Personaje] = Vector.empty): Boolean = {
-    // Check if the tile itself is walkable (not a wall)
-    // Check if there's an entity at this position
+    val tile = getTile(x, y)
     val entityAtPosition = entities.exists(entity => entity.position == Position(x, y))
-    getTile(x, y) != '#' && !entityAtPosition
+    (tile == '.' || tile == '\'') && !entityAtPosition
   }
 
   def render(player: Player, entities: Vector[Personaje], colorsEnabled: Boolean = false): String = {
@@ -44,7 +51,12 @@ case class LevelMap(grid: Vector[Vector[Char]], width: Int, height: Int) {
               if (colorsEnabled) sb.append(e.color).append(e.symbol).append(Colors.Reset)
               else sb.append(e.symbol)
             case None =>
-              sb.append(grid(y)(x))
+              val tile = grid(y)(x)
+              if (colorsEnabled && (tile == '+' || tile == '\'')) {
+                sb.append(Colors.Brown).append(tile).append(Colors.Reset)
+              } else {
+                sb.append(tile)
+              }
           }
         }
       }

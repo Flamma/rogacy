@@ -14,121 +14,37 @@ object Game {
     maxColors != null && maxColors >= 8
   }
 
-  def createInitialMap(): LevelMap = {
-    val width = 80
-    val height = 20
-    val baseGrid = Vector.fill(height, width)('.')
-    val withWalls = baseGrid.zipWithIndex.map { case (row, y) =>
-      row.zipWithIndex.map { case (cell, x) =>
-        if (x == 0 || x == width - 1 || y == 0 || y == height - 1) '#'
-        else if (x >= 5 && x <= 14 && y == 5) '#'
-        else if (y >= 5 && y < height && x == 5) '#'
-        else cell
-      }
-    }
-    LevelMap(withWalls, width, height)
-  }
-
-  def createInitialEntities(): Vector[Personaje] = {
-    Vector(
-      Personaje("Goblin", 'g', Position(5, 3), Colors.Green),
-      Personaje("Potion", 'p', Position(10, 6), Colors.Cyan)
-    )
-  }
-
   def movePlayer(
-    player: Player, 
+    state: GameState,
     dx: Int, 
-    dy: Int, 
-    map: LevelMap, 
-    entities: Vector[Personaje]
-  ): (Option[Player], Option[String]) = {
-    val newPos = Position(player.position.x + dx, player.position.y + dy)
+    dy: Int
+  ): GameState = {
+    val newPos = Position(state.player.position.x + dx, state.player.position.y + dy)
     
     // Check if there's an entity at the new position
-    entities.find(_.position == newPos) match {
+    state.entities.find(_.position == newPos) match {
       case Some(entity) =>
         // Player bumped into an entity, use its interact method
-        (None, Some(entity.interact()))
+        state.addMessage(entity.interact())
       case None =>
-        // No entity at the new position, check if it's walkable
-        if (map.isWalkable(newPos.x, newPos.y, entities)) {
-          (Some(player.copy(position = newPos)), None) // Player moves
+        val tile = state.map.getTile(newPos.x, newPos.y)
+        if (tile == '+') {
+          val newMap = state.map.updateTile(newPos.x, newPos.y, '\'')
+          state.copy(map = newMap).addMessage("You open the door.")
+        } else if (state.map.isWalkable(newPos.x, newPos.y, state.entities)) {
+          val dirStr = if (dx > 0) "right" else if (dx < 0) "left" else if (dy > 0) "down" else "up"
+          state.copy(player = state.player.copy(position = newPos)).addMessage(s"You moved $dirStr.")
         } else {
-          (None, None) // Player doesn't move, no message
+          state
         }
     }
   }
 
   def handleInput(state: GameState, input: Char): GameState = input match {
-    case 'w' => {
-      val (playerOption, messageOption) = movePlayer(state.player, 0, -1, state.map, state.entities)
-      var newState = state
-      
-      // Handle player movement
-      if (playerOption.isDefined) {
-        newState = newState.copy(player = playerOption.get)
-        newState = newState.addMessage("You moved up.")
-      }
-      
-      // Handle interaction message
-      if (messageOption.isDefined) {
-        newState = newState.addMessage(messageOption.get)
-      }
-      
-      newState
-    }
-    case 's' => {
-      val (playerOption, messageOption) = movePlayer(state.player, 0, 1, state.map, state.entities)
-      var newState = state
-      
-      // Handle player movement
-      if (playerOption.isDefined) {
-        newState = newState.copy(player = playerOption.get)
-        newState = newState.addMessage("You moved down.")
-      }
-      
-      // Handle interaction message
-      if (messageOption.isDefined) {
-        newState = newState.addMessage(messageOption.get)
-      }
-      
-      newState
-    }
-    case 'a' => {
-      val (playerOption, messageOption) = movePlayer(state.player, -1, 0, state.map, state.entities)
-      var newState = state
-      
-      // Handle player movement
-      if (playerOption.isDefined) {
-        newState = newState.copy(player = playerOption.get)
-        newState = newState.addMessage("You moved left.")
-      }
-      
-      // Handle interaction message
-      if (messageOption.isDefined) {
-        newState = newState.addMessage(messageOption.get)
-      }
-      
-      newState
-    }
-    case 'd' => {
-      val (playerOption, messageOption) = movePlayer(state.player, 1, 0, state.map, state.entities)
-      var newState = state
-      
-      // Handle player movement
-      if (playerOption.isDefined) {
-        newState = newState.copy(player = playerOption.get)
-        newState = newState.addMessage("You moved right.")
-      }
-      
-      // Handle interaction message
-      if (messageOption.isDefined) {
-        newState = newState.addMessage(messageOption.get)
-      }
-      
-      newState
-    }
+    case 'w' => movePlayer(state, 0, -1)
+    case 's' => movePlayer(state, 0, 1)
+    case 'a' => movePlayer(state, -1, 0)
+    case 'd' => movePlayer(state, 1, 0)
     case ' ' => handleMessagePagination(state)
     case 'q' => state.copy(running = false)
     case _ => state
@@ -199,9 +115,7 @@ object Game {
   }
 
   def start(): Unit = {
-    val map = createInitialMap()
-    val player = Player(Position(1, 1))
-    val entities = createInitialEntities()
+    val (map, player, entities) = DungeonGenerator.generate(80, 20)
     val initialState = GameState(map, player, entities, true, Vector("Welcome to Rogacy! Use WASD to move."), 0)
     loop(initialState)
   }
