@@ -45,13 +45,13 @@ class MessageRenderingTest extends AnyFlatSpec with Matchers {
     val map = LevelMap(grid, 20, 10)
     val player = Player(Position(1, 1))
     val entities = Vector(Personaje("Goblin", 'g', Position(2, 1))) // Entity at position (2,1)
+    val initialState = GameState(map, player, entities)
     
     // Test that player can move to position (2,1) but will get interaction message
-    val (playerOption, messageOption) = Game.movePlayer(player, 1, 0, map, entities)
+    val newState = Game.movePlayer(initialState, 1, 0)
     
-    // Player should not move (None) but should get interaction message (Some)
-    playerOption should be(None)
-    messageOption should not be None
-    messageOption.get should include("goblin")
+    // Player should not move but should get interaction message
+    newState.player shouldBe initialState.player
+    newState.messages.last should include("goblin")
   }
 }

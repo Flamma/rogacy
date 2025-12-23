@@ -2,6 +2,7 @@ package net.asqueados.rogacy
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import scala.math.*
 
 class DungeonGeneratorTest extends AnyFlatSpec with Matchers {
   "DungeonGenerator" should "generate a map with correct dimensions" in {
@@ -9,8 +10,8 @@ class DungeonGeneratorTest extends AnyFlatSpec with Matchers {
     val height = 20
     val (map, _, _, _) = DungeonGenerator.generate(width, height)
     
-    map.width shouldEqual width
-    map.height shouldEqual height
+    map.width shouldBe width
+    map.height shouldBe height
   }
 
   it should "place stairs reasonably far apart" in {
@@ -18,16 +19,17 @@ class DungeonGeneratorTest extends AnyFlatSpec with Matchers {
     val height = 20
     val (_, upPos, downPos, _) = DungeonGenerator.generate(width, height)
     
-    math.abs(upPos.x - downPos.x) should be >= (width / 2)
+    val dx = abs(upPos.x - downPos.x)
+    dx should be >= (width / 2)
   }
 
-  it should "place player at a stair position (if using start logic)" in {
+  it should "place stairs at correct tiles" in {
     val width = 80
     val height = 20
     val (map, upPos, downPos, _) = DungeonGenerator.generate(width, height)
     
-    map.getTile(upPos.x, upPos.y) shouldEqual '<'
-    map.getTile(downPos.x, downPos.y) shouldEqual '>'
+    map.getTile(upPos.x, upPos.y) shouldBe '<'
+    map.getTile(downPos.x, downPos.y) shouldBe '>'
   }
 
   it should "not place entities on stairs" in {
@@ -36,18 +38,17 @@ class DungeonGeneratorTest extends AnyFlatSpec with Matchers {
     val (map, upPos, downPos, entities) = DungeonGenerator.generate(width, height)
     
     entities.foreach { entity =>
-      entity.position should not equal upPos
-      entity.position should not equal downPos
-      map.getTile(entity.position.x, entity.position.y) shouldEqual '.'
+      entity.position shouldNot be(upPos)
+      entity.position shouldNot be(downPos)
+      map.getTile(entity.position.x, entity.position.y) shouldBe '.'
     }
   }
 
-  it should "generate walkable paths between rooms" in {
+  it should "generate walkable stairs" in {
     val width = 80
     val height = 20
     val (map, upPos, downPos, _) = DungeonGenerator.generate(width, height)
     
-    // Check that stairs are on walkable tiles (stairs themselves are walkable)
     map.isWalkable(upPos.x, upPos.y) shouldBe true
     map.isWalkable(downPos.x, downPos.y) shouldBe true
   }

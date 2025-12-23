@@ -1,6 +1,7 @@
 package net.asqueados.rogacy
 
 import scala.util.Random
+import scala.math.*
 
 object DungeonGenerator {
   def generate(width: Int, height: Int): (LevelMap, Position, Position, Vector[Personaje]) = {
@@ -23,13 +24,16 @@ object DungeonGenerator {
 
     for (_ <- 0 until 50) { // Try 50 times to place rooms
       if (rooms.size < maxRooms) {
-        val w = random.nextInt(maxRoomSize - minRoomSize + 1) + minRoomSize
-        val h = random.nextInt(maxRoomSize - minRoomSize + 1) + minRoomSize
-        val x = random.nextInt(width - w - 2) + 1
-        val y = random.nextInt(height - h - 2) + 1
-        val newRoom = Room(x, y, w, h)
-        
-        if (!rooms.exists(r => r.intersects(newRoom.copy(x = newRoom.x - 1, y = newRoom.y - 1, w = newRoom.w + 2, h = newRoom.h + 2)))) {
+        val w = random.nextInt(max(1, maxRoomSize - minRoomSize + 1)) + minRoomSize
+        val h = random.nextInt(max(1, maxRoomSize - minRoomSize + 1)) + minRoomSize
+        val xBound = width - w - 2
+        val yBound = height - h - 2
+        if (xBound >= 0 && yBound >= 0) {
+          val x = random.nextInt(xBound + 1) + 1
+          val y = random.nextInt(yBound + 1) + 1
+          val newRoom = Room(x, y, w, h)
+          
+          if (!rooms.exists(r => r.intersects(newRoom.copy(x = newRoom.x - 1, y = newRoom.y - 1, w = newRoom.w + 2, h = newRoom.h + 2)))) {
           // Carve room
           for (ry <- y until y + h; rx <- x until x + w) {
             grid = grid.updated(ry, grid(ry).updated(rx, '.'))
@@ -56,13 +60,13 @@ object DungeonGenerator {
     }
 
     def carveH(x1: Int, x2: Int, y: Int): Unit = {
-      for (x <- math.min(x1, x2) to math.max(x1, x2)) {
+      for (x <- min(x1, x2) to max(x1, x2)) {
         grid = grid.updated(y, grid(y).updated(x, '.'))
       }
     }
 
     def carveV(y1: Int, y2: Int, x: Int): Unit = {
-      for (y <- math.min(y1, y2) to math.max(y1, y2)) {
+      for (y <- min(y1, y2) to max(y1, y2)) {
         grid = grid.updated(y, grid(y).updated(x, '.'))
       }
     }
@@ -90,7 +94,7 @@ object DungeonGenerator {
         r1 <- rooms
         r2 <- rooms
         if r1 != r2
-        dist = math.abs(r1.centerX - r2.centerX)
+        dist = abs(r1.centerX - r2.centerX)
         if dist >= width / 2
       } yield (r1, r2)
       
@@ -98,7 +102,7 @@ object DungeonGenerator {
         possiblePairs(random.nextInt(possiblePairs.size))
       } else {
         rooms.flatMap(r1 => rooms.map(r2 => (r1, r2)))
-          .maxBy { case (r1, r2) => math.abs(r1.centerX - r2.centerX) }
+          .maxBy { case (r1, r2) => abs(r1.centerX - r2.centerX) }
       }
       
       upPos = Position(roomUp.centerX, roomUp.centerY)
@@ -109,19 +113,21 @@ object DungeonGenerator {
     }
     
     // Place some entities
-    val entities = rooms.drop(1).flatMap { room =>
-      val numEntities = random.nextInt(2) // 0 or 1 entity per room
-      (0 until numEntities).flatMap { _ =>
-        val eX = room.x + random.nextInt(room.w)
-        val eY = room.y + random.nextInt(room.h)
-        val pos = Position(eX, eY)
-        // Don't place entity on stairs
-        if (grid(eY)(eX) == '.') {
-          if (random.nextBoolean()) Some(Personaje("Goblin", 'g', pos, Colors.Green))
-          else Some(Personaje("Troll", 'T', pos, Colors.Red))
-        } else None
+    val entities = if (rooms.size > 1) {
+      rooms.drop(1).flatMap { room =>
+        val numEntities = random.nextInt(2) // 0 or 1 entity per room
+        (0 until numEntities).flatMap { _ =>
+          val eX = room.x + random.nextInt(max(1, room.w))
+          val eY = room.y + random.nextInt(max(1, room.h))
+          val pos = Position(eX, eY)
+          // Don't place entity on stairs
+          if (grid(eY)(eX) == '.') {
+            if (random.nextBoolean()) Some(Personaje("Goblin", 'g', pos, Colors.Green))
+            else Some(Personaje("Troll", 'T', pos, Colors.Red))
+          } else None
+        }
       }
-    }
+    } else Vector.empty[Personaje]
 
     (LevelMap(grid, width, height), upPos, downPos, entities)
   }

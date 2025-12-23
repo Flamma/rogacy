@@ -1,6 +1,7 @@
 package net.asqueados.rogacy
 
 import scala.annotation.tailrec
+import scala.math.*
 import org.jline.terminal.TerminalBuilder
 import org.jline.reader.LineReaderBuilder
 
@@ -119,7 +120,7 @@ object Game {
         // Handle pagination
         val totalPages = (messageLength + maxMessageLength - 1) / maxMessageLength
         val startIdx = state.currentMessagePage * maxMessageLength
-        val endIdx = math.min(startIdx + maxMessageLength, messageLength)
+        val endIdx = min(startIdx + maxMessageLength, messageLength)
         val messagePart = currentMessage.substring(startIdx, endIdx)
         
         if (endIdx < messageLength) {
