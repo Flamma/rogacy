@@ -68,15 +68,6 @@ object Game {
       state.addMessage(if (isUp) "You can't go up here." else "You can't go down here.")
     }
   }
-
-  def start(): Unit = {
-    val (map, upPos, downPos, entities) = DungeonGenerator.generate(80, 20)
-    // Start at up stairs on first level
-    val initialState = GameState(map, Player(upPos), entities, true, Vector("Welcome to Rogacy! Use WASD to move."), 0)
-    loop(initialState)
-  }
-}
-  }
   
   def handleMessagePagination(state: GameState): GameState = {
     val maxMessageLength = state.map.width
@@ -143,8 +134,9 @@ object Game {
   }
 
   def start(): Unit = {
-    val (map, player, entities) = DungeonGenerator.generate(80, 20)
-    val initialState = GameState(map, player, entities, true, Vector("Welcome to Rogacy! Use WASD to move."), 0)
+    val (map, upPos, downPos, entities) = DungeonGenerator.generate(80, 20)
+    // Start at up stairs on first level
+    val initialState = GameState(map, Player(upPos), entities, true, Vector("Welcome to Rogacy! Use WASD to move."), 0)
     loop(initialState)
   }
 }
