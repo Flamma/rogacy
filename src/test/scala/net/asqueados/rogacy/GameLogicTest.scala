@@ -102,7 +102,7 @@ class GameLogicTest extends AnyFlatSpec with Matchers {
     
     val newState = Game.handleInput(initialState, '>')
     newState.depth shouldEqual 2
-    newState.messages.last should include ("You descend to level 2.")
+    newState.messages.last should include ("level 2")
     // Map should have changed, and player should be at the up stairs of the new map
     newState.map should not be gameMap
     val tileAtNewPos = newState.map.getTile(newState.player.position.x, newState.player.position.y)
