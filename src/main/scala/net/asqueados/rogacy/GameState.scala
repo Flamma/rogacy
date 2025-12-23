@@ -34,7 +34,7 @@ case class LevelMap(grid: Vector[Vector[Char]], width: Int, height: Int) {
   def isWalkable(x: Int, y: Int, entities: Vector[Personaje] = Vector.empty): Boolean = {
     val tile = getTile(x, y)
     val entityAtPosition = entities.exists(entity => entity.position == Position(x, y))
-    (tile == '.' || tile == '\'') && !entityAtPosition
+    (tile == '.' || tile == '\'' || tile == '<' || tile == '>') && !entityAtPosition
   }
 
   def render(player: Player, entities: Vector[Personaje], colorsEnabled: Boolean = false): String = {
@@ -72,7 +72,8 @@ case class GameState(
   entities: Vector[Personaje], 
   running: Boolean = true,
   messages: Vector[String] = Vector("Welcome to Rogacy!"),
-  currentMessagePage: Int = 0
+  currentMessagePage: Int = 0,
+  depth: Int = 1
 ) {
   def addMessage(message: String): GameState = {
     this.copy(messages = messages :+ message, currentMessagePage = 0)

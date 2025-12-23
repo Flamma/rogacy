@@ -16,8 +16,13 @@ class LevelMapTest extends AnyFlatSpec with Matchers {
     val grid = Vector.fill(10, 20)('.')
     val gameMap = LevelMap(grid, 20, 10)
     
-    // Floor should be walkable
+    // Floor and stairs should be walkable
     gameMap.isWalkable(1, 1) shouldBe true
+    
+    val withStairs = grid.updated(2, grid(2).updated(2, '<')).updated(3, grid(3).updated(3, '>'))
+    val mapWithStairs = LevelMap(withStairs, 20, 10)
+    mapWithStairs.isWalkable(2, 2) shouldBe true
+    mapWithStairs.isWalkable(3, 3) shouldBe true
   }
 
   it should "correctly identify non-walkable tiles" in {

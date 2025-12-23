@@ -83,15 +83,41 @@ object DungeonGenerator {
     
     // Place player in the first room
     val playerPos = if (rooms.nonEmpty) Position(rooms.head.centerX, rooms.head.centerY) else Position(width/2, height/2)
+
+    // Place stairs
+    if (rooms.size >= 2) {
+      val possiblePairs = for {
+        r1 <- rooms
+        r2 <- rooms
+        if r1 != r2
+        dist = math.abs(r1.centerX - r2.centerX) // "at least half the dungeon width" suggests horizontal distance
+        if dist >= width / 2
+      } yield (r1, r2)
+      
+      val (roomUp, roomDown) = if (possiblePairs.nonEmpty) {
+        possiblePairs(random.nextInt(possiblePairs.size))
+      } else {
+        // Fallback: pick rooms with maximum horizontal distance
+        rooms.flatMap(r1 => rooms.map(r2 => (r1, r2)))
+          .maxBy { case (r1, r2) => math.abs(r1.centerX - r2.centerX) }
+      }
+      
+      grid = grid.updated(roomUp.centerY, grid(roomUp.centerY).updated(roomUp.centerX, '<'))
+      grid = grid.updated(roomDown.centerY, grid(roomDown.centerY).updated(roomDown.centerX, '>'))
+    }
     
     // Place some entities
     val entities = rooms.drop(1).flatMap { room =>
       val numEntities = random.nextInt(2) // 0 or 1 entity per room
-      (0 until numEntities).map { _ =>
+      (0 until numEntities).flatMap { _ =>
         val eX = room.x + random.nextInt(room.w)
         val eY = room.y + random.nextInt(room.h)
-        if (random.nextBoolean()) Personaje("Goblin", 'g', Position(eX, eY), Colors.Green)
-        else Personaje("Troll", 'T', Position(eX, eY), Colors.Red)
+        val pos = Position(eX, eY)
+        // Don't place entity on stairs or player
+        if (grid(eY)(eX) == '.' && pos != playerPos) {
+          if (random.nextBoolean()) Some(Personaje("Goblin", 'g', pos, Colors.Green))
+          else Some(Personaje("Troll", 'T', pos, Colors.Red))
+        } else None
       }
     }
 

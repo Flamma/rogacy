@@ -45,9 +45,28 @@ object Game {
     case 's' => movePlayer(state, 0, 1)
     case 'a' => movePlayer(state, -1, 0)
     case 'd' => movePlayer(state, 1, 0)
+    case '<' => handleStairs(state, isUp = true)
+    case '>' => handleStairs(state, isUp = false)
     case ' ' => handleMessagePagination(state)
     case 'q' => state.copy(running = false)
     case _ => state
+  }
+  
+  def handleStairs(state: GameState, isUp: Boolean): GameState = {
+    val tile = state.map.getTile(state.player.position.x, state.player.position.y)
+    if (isUp && tile == '<') {
+      val newDepth = state.depth - 1
+      val (map, player, entities) = DungeonGenerator.generate(state.map.width, state.map.height)
+      state.copy(map = map, player = player, entities = entities, depth = newDepth)
+        .addMessage(s"You ascend to level $newDepth.")
+    } else if (!isUp && tile == '>') {
+      val newDepth = state.depth + 1
+      val (map, player, entities) = DungeonGenerator.generate(state.map.width, state.map.height)
+      state.copy(map = map, player = player, entities = entities, depth = newDepth)
+        .addMessage(s"You descend to level $newDepth.")
+    } else {
+      state.addMessage(if (isUp) "You can't go up here." else "You can't go down here.")
+    }
   }
   
   def handleMessagePagination(state: GameState): GameState = {
@@ -81,7 +100,7 @@ object Game {
     
     // Render map
     println(state.map.render(state.player, state.entities, colorsSupported))
-    println("Move with WASD, SPACE for messages, Q to quit:")
+    println(s"Level: ${state.depth} | WASD: Move, < / >: Stairs, SPACE: Msg, Q: Quit")
   }
   
   def renderMessages(state: GameState): Unit = {
