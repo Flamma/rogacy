@@ -3,7 +3,7 @@ package net.asqueados.rogacy
 import scala.util.Random
 
 object DungeonGenerator {
-  def generate(width: Int, height: Int): (LevelMap, Player, Vector[Personaje]) = {
+  def generate(width: Int, height: Int): (LevelMap, Position, Position, Vector[Personaje]) = {
     val random = new Random()
     var grid = Vector.fill(height, width)('#')
     
@@ -81,29 +81,31 @@ object DungeonGenerator {
       }
     }
     
-    // Place player in the first room
-    val playerPos = if (rooms.nonEmpty) Position(rooms.head.centerX, rooms.head.centerY) else Position(width/2, height/2)
-
     // Place stairs
+    var upPos = Position(width/2, height/2)
+    var downPos = Position(width/2, height/2)
+
     if (rooms.size >= 2) {
       val possiblePairs = for {
         r1 <- rooms
         r2 <- rooms
         if r1 != r2
-        dist = math.abs(r1.centerX - r2.centerX) // "at least half the dungeon width" suggests horizontal distance
+        dist = math.abs(r1.centerX - r2.centerX)
         if dist >= width / 2
       } yield (r1, r2)
       
       val (roomUp, roomDown) = if (possiblePairs.nonEmpty) {
         possiblePairs(random.nextInt(possiblePairs.size))
       } else {
-        // Fallback: pick rooms with maximum horizontal distance
         rooms.flatMap(r1 => rooms.map(r2 => (r1, r2)))
           .maxBy { case (r1, r2) => math.abs(r1.centerX - r2.centerX) }
       }
       
-      grid = grid.updated(roomUp.centerY, grid(roomUp.centerY).updated(roomUp.centerX, '<'))
-      grid = grid.updated(roomDown.centerY, grid(roomDown.centerY).updated(roomDown.centerX, '>'))
+      upPos = Position(roomUp.centerX, roomUp.centerY)
+      downPos = Position(roomDown.centerX, roomDown.centerY)
+      
+      grid = grid.updated(upPos.y, grid(upPos.y).updated(upPos.x, '<'))
+      grid = grid.updated(downPos.y, grid(downPos.y).updated(downPos.x, '>'))
     }
     
     // Place some entities
@@ -113,14 +115,14 @@ object DungeonGenerator {
         val eX = room.x + random.nextInt(room.w)
         val eY = room.y + random.nextInt(room.h)
         val pos = Position(eX, eY)
-        // Don't place entity on stairs or player
-        if (grid(eY)(eX) == '.' && pos != playerPos) {
+        // Don't place entity on stairs
+        if (grid(eY)(eX) == '.') {
           if (random.nextBoolean()) Some(Personaje("Goblin", 'g', pos, Colors.Green))
           else Some(Personaje("Troll", 'T', pos, Colors.Red))
         } else None
       }
     }
 
-    (LevelMap(grid, width, height), Player(playerPos), entities)
+    (LevelMap(grid, width, height), upPos, downPos, entities)
   }
 }

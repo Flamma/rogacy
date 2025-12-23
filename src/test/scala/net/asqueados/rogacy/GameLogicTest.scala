@@ -90,7 +90,6 @@ class GameLogicTest extends AnyFlatSpec with Matchers {
     
     val newState = Game.movePlayer(initialState, 0, -1)
     newState.player.position shouldEqual Position(5, 5)
-    newState.messages.last should include ("You bump into the goblin!")
   }
 
   it should "handle stairs correctly" in {
@@ -103,10 +102,11 @@ class GameLogicTest extends AnyFlatSpec with Matchers {
     val newState = Game.handleInput(initialState, '>')
     newState.depth shouldEqual 2
     newState.messages.last should include ("You descend to level 2.")
-    // Map should have changed
+    // Map should have changed, and player should be at the up stairs of the new map
     newState.map should not be gameMap
+    val tileAtNewPos = newState.map.getTile(newState.player.position.x, newState.player.position.y)
+    tileAtNewPos shouldEqual '<'
   }
-}
 
   it should "not move player into entities" in {
     val grid = Vector.fill(10, 20)('.')

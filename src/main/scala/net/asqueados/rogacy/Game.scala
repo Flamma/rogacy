@@ -56,17 +56,26 @@ object Game {
     val tile = state.map.getTile(state.player.position.x, state.player.position.y)
     if (isUp && tile == '<') {
       val newDepth = state.depth - 1
-      val (map, player, entities) = DungeonGenerator.generate(state.map.width, state.map.height)
-      state.copy(map = map, player = player, entities = entities, depth = newDepth)
+      val (map, upPos, downPos, entities) = DungeonGenerator.generate(state.map.width, state.map.height)
+      state.copy(map = map, player = state.player.copy(position = downPos), entities = entities, depth = newDepth)
         .addMessage(s"You ascend to level $newDepth.")
     } else if (!isUp && tile == '>') {
       val newDepth = state.depth + 1
-      val (map, player, entities) = DungeonGenerator.generate(state.map.width, state.map.height)
-      state.copy(map = map, player = player, entities = entities, depth = newDepth)
+      val (map, upPos, downPos, entities) = DungeonGenerator.generate(state.map.width, state.map.height)
+      state.copy(map = map, player = state.player.copy(position = upPos), entities = entities, depth = newDepth)
         .addMessage(s"You descend to level $newDepth.")
     } else {
       state.addMessage(if (isUp) "You can't go up here." else "You can't go down here.")
     }
+  }
+
+  def start(): Unit = {
+    val (map, upPos, downPos, entities) = DungeonGenerator.generate(80, 20)
+    // Start at up stairs on first level
+    val initialState = GameState(map, Player(upPos), entities, true, Vector("Welcome to Rogacy! Use WASD to move."), 0)
+    loop(initialState)
+  }
+}
   }
   
   def handleMessagePagination(state: GameState): GameState = {
