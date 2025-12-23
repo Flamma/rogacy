@@ -33,11 +33,11 @@ object DungeonGenerator {
     }
 
     var rooms = scala.collection.immutable.Vector.empty[Room]
-    val maxRooms = 15
-    val minRoomSize = 3 // Smaller min room size for reliability
+    val maxRooms = (width * height) / 500
+    val minRoomSize = 3
     val maxRoomSize = 12
 
-    for (_ <- 0 until 100) { // More attempts to place rooms
+    for (_ <- 0 until width) { // More attempts proportional to width
       if (rooms.size < maxRooms) {
         val w = random.nextInt(scala.math.max(1, maxRoomSize - minRoomSize + 1)) + minRoomSize
         val h = random.nextInt(scala.math.max(1, maxRoomSize - minRoomSize + 1)) + minRoomSize

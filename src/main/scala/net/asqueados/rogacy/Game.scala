@@ -2,9 +2,11 @@ package net.asqueados.rogacy
 
 import scala.annotation.tailrec
 import org.jline.terminal.TerminalBuilder
-import org.jline.reader.LineReaderBuilder
 
 object Game {
+  private val ViewportWidth = 80
+  private val ViewportHeight = 20
+
   private val terminal = TerminalBuilder.builder().system(true).build()
   terminal.enterRawMode()
   private val inputReader = terminal.reader()
@@ -74,7 +76,7 @@ object Game {
   }
   
   def handleMessagePagination(state: GameState): GameState = {
-    val maxMessageLength = state.map.width
+    val maxMessageLength = ViewportWidth
     val currentMessages = state.messages
     val currentMessage = if (currentMessages.nonEmpty) currentMessages.last else ""
     
@@ -103,12 +105,12 @@ object Game {
     renderMessages(state)
     
     // Render map
-    println(state.map.render(state.player, state.entities, colorsSupported))
+    println(state.map.render(state.player, state.entities, colorsSupported, ViewportWidth, ViewportHeight))
     println(s"Level: ${state.depth} | WASD/Numpad: Move, < / >: Stairs, SPACE: Msg, Q: Quit")
   }
   
   def renderMessages(state: GameState): Unit = {
-    val maxMessageLength = state.map.width
+    val maxMessageLength = ViewportWidth
     val currentMessages = state.messages
     
     if (currentMessages.nonEmpty) {
@@ -119,7 +121,7 @@ object Game {
         // Handle pagination
         val totalPages = (messageLength + maxMessageLength - 1) / maxMessageLength
         val startIdx = state.currentMessagePage * maxMessageLength
-        val endIdx = scala.math.min(startIdx + maxMessageLength, messageLength)
+        val endIdx = math.min(startIdx + maxMessageLength, messageLength)
         val messagePart = currentMessage.substring(startIdx, endIdx)
         
         if (endIdx < messageLength) {
@@ -138,7 +140,7 @@ object Game {
   }
 
   def start(): Unit = {
-    val (map, upPos, downPos, entities) = DungeonGenerator.generate(80, 20)
+    val (map, upPos, downPos, entities) = DungeonGenerator.generate(200, 200)
     // Start at up stairs on first level
     val initialState = GameState(map, Player(upPos), entities, true, Vector("Welcome to Rogacy! Use WASD to move."), 0)
     loop(initialState)
