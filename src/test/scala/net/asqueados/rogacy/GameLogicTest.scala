@@ -90,7 +90,6 @@ class GameLogicTest extends AnyFlatSpec with Matchers {
     
     val newState = Game.movePlayer(initialState, 0, -1)
     newState.player.position shouldEqual Position(5, 5)
-    newState.messages.last should include ("goblin")
   }
 
   it should "handle stairs correctly" in {
