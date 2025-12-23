@@ -2,7 +2,6 @@ package net.asqueados.rogacy
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import scala.math.*
 
 class DungeonGeneratorTest extends AnyFlatSpec with Matchers {
   "DungeonGenerator" should "generate a map with correct dimensions" in {
@@ -19,7 +18,7 @@ class DungeonGeneratorTest extends AnyFlatSpec with Matchers {
     val height = 20
     val (_, upPos, downPos, _) = DungeonGenerator.generate(width, height)
     
-    val dx = abs(upPos.x - downPos.x)
+    val dx = scala.math.abs(upPos.x - downPos.x)
     dx should be >= (width / 2)
   }
 
