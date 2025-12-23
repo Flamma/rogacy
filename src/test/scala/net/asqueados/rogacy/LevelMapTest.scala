@@ -55,7 +55,7 @@ class LevelMapTest extends AnyFlatSpec with Matchers {
     val player = Player(Position(1, 1))
     val entities = Vector(Personaje("Goblin", 'g', Position(5, 5)))
     
-    val rendered = gameMap.render(player, entities)
+    val rendered = gameMap.render(player, entities, viewportWidth = 20, viewportHeight = 10)
     rendered should not be empty
     rendered should include("@")
     rendered should include("#")

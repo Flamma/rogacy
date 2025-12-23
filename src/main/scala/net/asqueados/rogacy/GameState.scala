@@ -37,10 +37,13 @@ case class LevelMap(grid: Vector[Vector[Char]], width: Int, height: Int) {
     (tile == '.' || tile == '\'' || tile == '<' || tile == '>') && !entityAtPosition
   }
 
-  def render(player: Player, entities: Vector[Personaje], colorsEnabled: Boolean = false): String = {
+  def render(player: Player, entities: Vector[Personaje], colorsEnabled: Boolean = false, viewportWidth: Int = 80, viewportHeight: Int = 20): String = {
+    val startX = scala.math.max(0, scala.math.min(width - viewportWidth, player.position.x - viewportWidth / 2))
+    val startY = scala.math.max(0, scala.math.min(height - viewportHeight, player.position.y - viewportHeight / 2))
+    
     val sb = new StringBuilder()
-    for (y <- 0 until height) {
-      for (x <- 0 until width) {
+    for (y <- startY until scala.math.min(startY + viewportHeight, height)) {
+      for (x <- startX until scala.math.min(startX + viewportWidth, width)) {
         val pos = Position(x, y)
         if (player.position == pos) {
           if (colorsEnabled) sb.append(player.color).append('@').append(Colors.Reset)
@@ -60,7 +63,7 @@ case class LevelMap(grid: Vector[Vector[Char]], width: Int, height: Int) {
           }
         }
       }
-      if (y < height - 1) sb.append('\n')
+      if (y < startY + viewportHeight - 1 && y < height - 1) sb.append('\n')
     }
     sb.toString()
   }
