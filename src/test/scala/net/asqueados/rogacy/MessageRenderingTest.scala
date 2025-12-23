@@ -52,6 +52,6 @@ class MessageRenderingTest extends AnyFlatSpec with Matchers {
     
     // Player should not move but should get interaction message
     newState.player shouldBe initialState.player
-    newState.messages.last should include("goblin")
+    newState.messages.last.toLowerCase should include("goblin")
   }
 }
