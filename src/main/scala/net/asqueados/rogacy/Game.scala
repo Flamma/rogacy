@@ -105,7 +105,7 @@ object Game {
     renderMessages(state)
     
     // Render map
-    println(state.map.render(state.player, state.entities, colorsSupported, ViewportWidth, ViewportHeight))
+    println(state.map.render(state.player, state.entities, colorsSupported, ViewportWidth, ViewportHeight, state.viewEverything))
     println(s"Level: ${state.depth} | WASD/Numpad: Move, < / >: Stairs, SPACE: Msg, Q: Quit")
   }
   
@@ -139,10 +139,19 @@ object Game {
     }
   }
 
-  def start(): Unit = {
+  def start(viewEverything: Boolean): Unit = {
     val (map, upPos, downPos, entities) = DungeonGenerator.generate(200, 200)
     // Start at up stairs on first level
-    val initialState = GameState(map, Player(upPos), entities, true, Vector("Welcome to Rogacy! Use WASD to move."), 0)
+    val initialState = GameState(
+      map, 
+      Player(upPos), 
+      entities, 
+      true, 
+      Vector("Welcome to Rogacy! Use WASD to move."), 
+      0,
+      1,
+      viewEverything
+    )
     loop(initialState)
   }
 }

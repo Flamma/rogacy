@@ -1,5 +1,7 @@
 package net.asqueados.rogacy
 
+import scala.annotation.tailrec
+
 object Colors {
   val Reset = "\u001b[0m"
   val Red = "\u001b[31m"
@@ -37,7 +39,41 @@ case class LevelMap(grid: Vector[Vector[Char]], width: Int, height: Int) {
     (tile == '.' || tile == '\'' || tile == '<' || tile == '>') && !entityAtPosition
   }
 
-  def render(player: Player, entities: Vector[Personaje], colorsEnabled: Boolean = false, viewportWidth: Int = 80, viewportHeight: Int = 20): String = {
+  def isOpaque(x: Int, y: Int): Boolean = {
+    val tile = getTile(x, y)
+    tile == '#' || tile == '+'
+  }
+
+  def hasLineOfSight(x0: Int, y0: Int, x1: Int, y1: Int): Boolean = {
+    val dx = math.abs(x1 - x0)
+    val dy = math.abs(y1 - y0)
+    val sx = if (x0 < x1) 1 else -1
+    val sy = if (y0 < y1) 1 else -1
+    
+    @tailrec
+    def check(x: Int, y: Int, err: Int): Boolean = {
+      if (x == x1 && y == y1) true
+      else if ((x != x0 || y != y0) && isOpaque(x, y)) false
+      else {
+        val e2 = 2 * err
+        var nextX = x
+        var nextY = y
+        var nextErr = err
+        if (e2 > -dy) {
+          nextErr -= dy
+          nextX += sx
+        }
+        if (e2 < dx) {
+          nextErr += dx
+          nextY += sy
+        }
+        check(nextX, nextY, nextErr)
+      }
+    }
+    check(x0, y0, dx - dy)
+  }
+
+  def render(player: Player, entities: Vector[Personaje], colorsEnabled: Boolean = false, viewportWidth: Int = 80, viewportHeight: Int = 20, viewEverything: Boolean = false): String = {
     val startX = scala.math.max(0, scala.math.min(width - viewportWidth, player.position.x - viewportWidth / 2))
     val startY = scala.math.max(0, scala.math.min(height - viewportHeight, player.position.y - viewportHeight / 2))
     
@@ -45,7 +81,11 @@ case class LevelMap(grid: Vector[Vector[Char]], width: Int, height: Int) {
     for (y <- startY until scala.math.min(startY + viewportHeight, height)) {
       for (x <- startX until scala.math.min(startX + viewportWidth, width)) {
         val pos = Position(x, y)
-        if (player.position == pos) {
+        val isVisible = viewEverything || hasLineOfSight(player.position.x, player.position.y, x, y)
+        
+        if (!isVisible) {
+          sb.append(' ')
+        } else if (player.position == pos) {
           if (colorsEnabled) sb.append(player.color).append('@').append(Colors.Reset)
           else sb.append('@')
         } else {
@@ -76,7 +116,8 @@ case class GameState(
   running: Boolean = true,
   messages: Vector[String] = Vector("Welcome to Rogacy!"),
   currentMessagePage: Int = 0,
-  depth: Int = 1
+  depth: Int = 1,
+  viewEverything: Boolean = false
 ) {
   def addMessage(message: String): GameState = {
     this.copy(messages = messages :+ message, currentMessagePage = 0)

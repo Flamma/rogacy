@@ -55,7 +55,7 @@ class LevelMapTest extends AnyFlatSpec with Matchers {
     val player = Player(Position(1, 1))
     val entities = Vector(Personaje("Goblin", 'g', Position(5, 5)))
     
-    val rendered = gameMap.render(player, entities, viewportWidth = 20, viewportHeight = 10)
+    val rendered = gameMap.render(player, entities, viewportWidth = 20, viewportHeight = 10, viewEverything = true)
     rendered should not be empty
     rendered should include("@")
     rendered should include("#")
@@ -68,8 +68,41 @@ class LevelMapTest extends AnyFlatSpec with Matchers {
     val player = Player(Position(1, 1), color = Colors.Green)
     val entities = Vector(Personaje("Goblin", 'g', Position(3, 3), color = Colors.Red))
     
-    val rendered = gameMap.render(player, entities, colorsEnabled = true)
+    val rendered = gameMap.render(player, entities, colorsEnabled = true, viewEverything = true)
     rendered should include(Colors.Green + "@" + Colors.Reset)
     rendered should include(Colors.Red + "g" + Colors.Reset)
+  }
+
+  it should "correctly calculate line of sight" in {
+    val grid = Vector.fill(10, 20)('.')
+    val withWall = grid.updated(5, grid(5).updated(5, '#'))
+    val gameMap = LevelMap(withWall, 20, 10)
+    
+    // Clear line of sight
+    gameMap.hasLineOfSight(1, 1, 3, 3) shouldBe true
+    
+    // Blocked by wall
+    gameMap.hasLineOfSight(4, 5, 6, 5) shouldBe false
+    
+    // Can see the wall itself
+    gameMap.hasLineOfSight(4, 5, 5, 5) shouldBe true
+    
+    // Starting point is the same as destination
+    gameMap.hasLineOfSight(1, 1, 1, 1) shouldBe true
+  }
+
+  it should "respect vision limitation during render" in {
+    val grid = Vector.fill(10, 20)('.')
+    val withWall = grid.updated(1, grid(1).updated(2, '#'))
+    val gameMap = LevelMap(withWall, 20, 10)
+    val player = Player(Position(1, 1))
+    val entities = Vector(Personaje("Hidden", 'h', Position(3, 1))) // Behind a wall at (2,1)
+    
+    // Render with LOS
+    val rendered = gameMap.render(player, entities, viewportWidth = 20, viewportHeight = 10)
+    
+    rendered should include("@")
+    rendered should include("#")
+    rendered should not include("h") // Hidden behind the wall
   }
 }
