@@ -105,4 +105,21 @@ class LevelMapTest extends AnyFlatSpec with Matchers {
     rendered should include("#")
     rendered should not include("h") // Hidden behind the wall
   }
+
+  it should "remember explored tiles" in {
+    val grid = Vector.fill(10, 20)('.')
+    val withWall = grid.updated(1, grid(1).updated(2, '#'))
+    // Initially explored at (3,1) where an entity is
+    val explored = Vector.fill(10, 20)(false).updated(1, Vector.fill(20)(false).updated(3, true))
+    val gameMap = LevelMap(withWall, 20, 10, explored)
+    val player = Player(Position(1, 1))
+    val entities = Vector(Personaje("Hidden", 'h', Position(3, 1))) // Behind a wall at (2,1)
+    
+    // Render without current LOS but with explored status
+    val rendered = gameMap.render(player, entities, viewportWidth = 20, viewportHeight = 10)
+    
+    rendered should include("@")
+    rendered should include(".") // Floor at (3,1) should be visible because explored
+    rendered should not include("h") // Entity at (3,1) should NOT be visible because not in current LOS
+  }
 }

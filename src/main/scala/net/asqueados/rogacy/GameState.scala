@@ -21,15 +21,26 @@ case class Personaje(name: String, symbol: Char, position: Position, color: Stri
   def coloredName: String = s"$color${name.toLowerCase}${Colors.Reset}"
 }
 case class Player(position: Position, health: Int = 100, color: String = Colors.BrightWhite)
-case class LevelMap(grid: Vector[Vector[Char]], width: Int, height: Int) {
+case class LevelMap(grid: Vector[Vector[Char]], width: Int, height: Int, explored: Vector[Vector[Boolean]]) {
   def getTile(x: Int, y: Int): Char = {
     if (x >= 0 && x < width && y >= 0 && y < height) grid(y)(x) else '#'
+  }
+
+  def isExplored(x: Int, y: Int): Boolean = {
+    if (x >= 0 && x < width && y >= 0 && y < height) explored(y)(x) else false
   }
 
   def updateTile(x: Int, y: Int, tile: Char): LevelMap = {
     if (x >= 0 && x < width && y >= 0 && y < height) {
       val newGrid = grid.updated(y, grid(y).updated(x, tile))
       this.copy(grid = newGrid)
+    } else this
+  }
+
+  def markExplored(x: Int, y: Int): LevelMap = {
+    if (x >= 0 && x < width && y >= 0 && y < height && !explored(y)(x)) {
+      val newExplored = explored.updated(y, explored(y).updated(x, true))
+      this.copy(explored = newExplored)
     } else this
   }
 
@@ -82,14 +93,16 @@ case class LevelMap(grid: Vector[Vector[Char]], width: Int, height: Int) {
       for (x <- startX until scala.math.min(startX + viewportWidth, width)) {
         val pos = Position(x, y)
         val isVisible = viewEverything || hasLineOfSight(player.position.x, player.position.y, x, y)
+        val explored = isExplored(x, y)
         
-        if (!isVisible) {
+        if (!isVisible && !explored) {
           sb.append(' ')
-        } else if (player.position == pos) {
+        } else if (isVisible && player.position == pos) {
           if (colorsEnabled) sb.append(player.color).append('@').append(Colors.Reset)
           else sb.append('@')
         } else {
-          entities.find(_.position == pos) match {
+          val entity = if (isVisible) entities.find(_.position == pos) else None
+          entity match {
             case Some(e) =>
               if (colorsEnabled) sb.append(e.color).append(e.symbol).append(Colors.Reset)
               else sb.append(e.symbol)
@@ -109,6 +122,12 @@ case class LevelMap(grid: Vector[Vector[Char]], width: Int, height: Int) {
   }
 }
 
+object LevelMap {
+  def apply(grid: Vector[Vector[Char]], width: Int, height: Int): LevelMap = {
+    LevelMap(grid, width, height, Vector.fill(height, width)(false))
+  }
+}
+
 case class GameState(
   map: LevelMap, 
   player: Player, 
@@ -121,5 +140,22 @@ case class GameState(
 ) {
   def addMessage(message: String): GameState = {
     this.copy(messages = messages :+ message, currentMessagePage = 0)
+  }
+
+  def updateVisibility(): GameState = {
+    val viewportWidth = 80 // Should ideally use the constant from Game
+    val viewportHeight = 20
+    val startX = scala.math.max(0, scala.math.min(map.width - viewportWidth, player.position.x - viewportWidth / 2))
+    val startY = scala.math.max(0, scala.math.min(map.height - viewportHeight, player.position.y - viewportHeight / 2))
+    
+    var newMap = map
+    for (y <- startY until scala.math.min(startY + viewportHeight, map.height)) {
+      for (x <- startX until scala.math.min(startX + viewportWidth, map.width)) {
+        if (map.hasLineOfSight(player.position.x, player.position.y, x, y)) {
+          newMap = newMap.markExplored(x, y)
+        }
+      }
+    }
+    this.copy(map = newMap)
   }
 }

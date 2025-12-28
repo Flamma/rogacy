@@ -91,9 +91,10 @@ object Game {
 
   @tailrec
   def loop(state: GameState): Unit = {
-    renderGame(state)
+    val updatedState = state.updateVisibility()
+    renderGame(updatedState)
     val input = inputReader.read().toChar.toLower
-    val newState = handleInput(state, input)
+    val newState = handleInput(updatedState, input)
     if (newState.running) loop(newState)
   }
   
@@ -151,7 +152,7 @@ object Game {
       0,
       1,
       viewEverything
-    )
+    ).updateVisibility()
     loop(initialState)
   }
 }
