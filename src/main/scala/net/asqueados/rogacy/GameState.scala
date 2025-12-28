@@ -13,6 +13,7 @@ object Colors {
   val White = "\u001b[37m"
   val BrightWhite = "\u001b[97m"
   val Brown = "\u001b[33m"
+  val Gray = "\u001b[90m"
 }
 
 case class Position(x: Int, y: Int)
@@ -108,8 +109,14 @@ case class LevelMap(grid: Vector[Vector[Char]], width: Int, height: Int, explore
               else sb.append(e.symbol)
             case None =>
               val tile = grid(y)(x)
-              if (colorsEnabled && (tile == '+' || tile == '\'')) {
-                sb.append(Colors.Brown).append(tile).append(Colors.Reset)
+              if (colorsEnabled) {
+                val color = if (isVisible) {
+                  if (tile == '+' || tile == '\'') Colors.Brown
+                  else Colors.White
+                } else {
+                  Colors.Gray
+                }
+                sb.append(color).append(tile).append(Colors.Reset)
               } else {
                 sb.append(tile)
               }

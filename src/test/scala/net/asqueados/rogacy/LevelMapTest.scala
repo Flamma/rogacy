@@ -122,4 +122,23 @@ class LevelMapTest extends AnyFlatSpec with Matchers {
     rendered should include(".") // Floor at (3,1) should be visible because explored
     rendered should not include("h") // Entity at (3,1) should NOT be visible because not in current LOS
   }
+
+  it should "use brighter colors for visible tiles and dimmer colors for remembered tiles" in {
+    val grid = Vector.fill(5, 5)('.')
+    val explored = Vector.fill(5, 5)(true)
+    // Wall blocking (2,2) from seeing (4,4)
+    val withWall = grid.updated(3, grid(3).updated(3, '#'))
+    val gameMap = LevelMap(withWall, 5, 5, explored)
+    val player = Player(Position(1, 1))
+    
+    val rendered = gameMap.render(player, Vector.empty, colorsEnabled = true)
+    
+    // (1,1) is player.
+    // (4,4) should be blocked by wall at (3,3)? 
+    // Line (1,1) to (4,4) goes through (2,2) and (3,3). (3,3) is a wall.
+    // So (4,4) is explored but NOT visible.
+    
+    rendered should include(Colors.White) // Visible tiles
+    rendered should include(Colors.Gray)  // Remembered tiles
+  }
 }
