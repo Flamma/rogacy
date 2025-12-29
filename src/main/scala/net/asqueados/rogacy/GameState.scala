@@ -17,6 +17,13 @@ object Colors {
 }
 
 case class Position(x: Int, y: Int)
+
+sealed trait MonsterState
+case object Idle extends MonsterState
+case object Chasing extends MonsterState
+case object Investigating extends MonsterState
+case object Wandering extends MonsterState
+
 case class Personaje(
   name: String, 
   symbol: Char, 
@@ -24,7 +31,9 @@ case class Personaje(
   color: String = Colors.White, 
   hp: Int = 3,
   speed: Int = 100,
-  nextActionTime: Long = 0L
+  nextActionTime: Long = 0L,
+  state: MonsterState = Idle,
+  lastKnownPlayerPosition: Option[Position] = None
 ) {
   def interact(): String = s"You attack the $coloredName!"
   def coloredName: String = s"$color${name.toLowerCase}${Colors.Reset}"

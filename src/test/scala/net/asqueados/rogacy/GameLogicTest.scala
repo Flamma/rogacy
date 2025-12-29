@@ -223,46 +223,56 @@ class GameLogicTest extends AnyFlatSpec with Matchers {
     newStateInvalid.time shouldEqual 0
   }
 
-  "Monster AI" should "move monster toward player if visible" in {
+  "Monster AI" should "move monster toward player if visible and transition to Chasing" in {
     val grid = Vector.fill(10, 20)('.')
     val gameMap = LevelMap(grid, 20, 10)
     val player = Player(Position(5, 5))
-    // Goblin at (7,5), speed 75. 
-    // Player just moved and time is 100.
-    val entities = Vector(Personaje("Goblin", 'g', Position(7, 5), speed = 75))
+    val entities = Vector(Personaje("Goblin", 'g', Position(7, 5), speed = 100))
     val state = GameState(gameMap, player, entities, time = 100)
     
     val newState = Game.processMonsters(state)
-    // Goblin should have moved closer. Both (6,5) and (6,4) are valid next steps toward (5,5).
-    val validPositions = Set(Position(6, 5), Position(6, 4))
-    validPositions should contain (newState.entities.head.position)
-    // Goblin should have moved twice? nextActionTime: 0 -> 75 -> 150.
-    // At T=100, 0 <= 100 (moves to 6,5, next=75), then 75 <= 100 (moves to 5,5 is target so attacks).
-    // Wait, if it moves to (6,5) at T=75, then at T=150 it would attack.
-    // Let's check the logic.
-    // Initial: nextActionTime = 0.
-    // T=100. 0 <= 100 is true.
-    // Monster moves to (6,5), nextActionTime = 75.
-    // Loop again. 75 <= 100 is true.
-    // Monster is at (6,5), target is (5,5). It's adjacent, so it attacks. nextActionTime = 150.
-    // Loop again. 150 <= 100 is false.
-    newState.entities.head.nextActionTime shouldEqual 150
-    newState.player.health shouldEqual 9
+    newState.entities.head.state shouldEqual Chasing
+    newState.entities.head.position shouldEqual Position(6, 4)
   }
 
-  it should "stay still if player is not visible" in {
+  it should "stay still if player is not visible and state is Idle" in {
     val grid = Vector.fill(10, 20)('.')
-    // Wall between player and monster
     val withWall = grid.updated(5, grid(5).updated(6, '#'))
     val gameMap = LevelMap(withWall, 20, 10)
     val player = Player(Position(5, 5))
-    val entities = Vector(Personaje("Goblin", 'g', Position(7, 5), speed = 75))
+    val entities = Vector(Personaje("Goblin", 'g', Position(7, 5), speed = 100, state = Idle))
     val state = GameState(gameMap, player, entities, time = 100)
     
     val newState = Game.processMonsters(state)
     newState.entities.head.position shouldEqual Position(7, 5)
-    // Time should still be consumed to avoid infinite loop
-    newState.entities.head.nextActionTime should be > 0L
+    newState.entities.head.state shouldEqual Idle
+  }
+
+  it should "transition to Investigating when losing sight of player" in {
+    val grid = Vector.fill(10, 20)('.')
+    // Vertical wall that blocks sight at x=6
+    val withWall = grid.map(_.updated(6, '#'))
+    val gameMap = LevelMap(withWall, 20, 10)
+    val player = Player(Position(5, 5))
+    val lastPos = Position(5, 5)
+    val entities = Vector(Personaje("Goblin", 'g', Position(8, 5), speed = 100, state = Chasing, lastKnownPlayerPosition = Some(lastPos)))
+    val state = GameState(gameMap, player, entities, time = 100)
+    
+    val newState = Game.processMonsters(state)
+    newState.entities.head.state shouldEqual Investigating
+  }
+
+  it should "transition to Wandering when reaching last known position" in {
+    val grid = Vector.fill(10, 20)('.')
+    val withWall = grid.updated(5, grid(5).updated(6, '#'))
+    val gameMap = LevelMap(withWall, 20, 10)
+    val player = Player(Position(5, 5))
+    val lastPos = Position(7, 5)
+    val entities = Vector(Personaje("Goblin", 'g', Position(7, 5), speed = 100, state = Investigating, lastKnownPlayerPosition = Some(lastPos)))
+    val state = GameState(gameMap, player, entities, time = 100)
+    
+    val newState = Game.processMonsters(state)
+    newState.entities.head.state shouldEqual Wandering
   }
 
   "Game death logic" should "be detected when player health reaches 0" in {

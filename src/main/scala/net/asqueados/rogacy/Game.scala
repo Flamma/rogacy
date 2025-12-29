@@ -1,9 +1,11 @@
 package net.asqueados.rogacy
 
 import scala.annotation.tailrec
+import scala.util.Random
 import org.jline.terminal.TerminalBuilder
 
 object Game {
+  private val random = new Random()
   private val terminal = TerminalBuilder.builder().system(true).build()
   terminal.enterRawMode()
   private val inputReader = terminal.reader()
@@ -171,32 +173,92 @@ object Game {
     // Can monster see player?
     val canSeePlayer = state.map.hasLineOfSight(monster.position.x, monster.position.y, state.player.position.x, state.player.position.y)
     
-    if (canSeePlayer) {
+    val (newState, updatedMonster) = if (canSeePlayer) {
       // Find shortest path to player
       val nextPos = findNextStep(state, monster.position, state.player.position)
       
       if (nextPos == state.player.position) {
         // Attack player
         val newPlayer = state.player.copy(health = state.player.health - 1)
-        val updatedMonster = monster.copy(nextActionTime = monster.nextActionTime + monster.speed)
-        val newEntities = state.entities.map(e => if (e == monster) updatedMonster else e)
-        state.copy(player = newPlayer, entities = newEntities).addMessage(s"The ${monster.coloredName} hits you!")
+        val updated = monster.copy(
+          nextActionTime = monster.nextActionTime + monster.speed,
+          state = Chasing,
+          lastKnownPlayerPosition = Some(state.player.position)
+        )
+        (state.copy(player = newPlayer).addMessage(s"The ${monster.coloredName} hits you!"), updated)
       } else if (state.map.isWalkable(nextPos.x, nextPos.y, state.entities)) {
         // Move monster
-        val updatedMonster = monster.copy(position = nextPos, nextActionTime = monster.nextActionTime + monster.speed)
-        val newEntities = state.entities.map(e => if (e == monster) updatedMonster else e)
-        state.copy(entities = newEntities)
+        val updated = monster.copy(
+          position = nextPos, 
+          nextActionTime = monster.nextActionTime + monster.speed,
+          state = Chasing,
+          lastKnownPlayerPosition = Some(state.player.position)
+        )
+        (state, updated)
       } else {
         // Cannot move (blocked by other monster), just consume time
-        val updatedMonster = monster.copy(nextActionTime = monster.nextActionTime + monster.speed)
-        val newEntities = state.entities.map(e => if (e == monster) updatedMonster else e)
-        state.copy(entities = newEntities)
+        val updated = monster.copy(
+          nextActionTime = monster.nextActionTime + monster.speed,
+          state = Chasing,
+          lastKnownPlayerPosition = Some(state.player.position)
+        )
+        (state, updated)
       }
     } else {
-      // Stay still, but must consume time to avoid infinite loop
-      val updatedMonster = monster.copy(nextActionTime = monster.nextActionTime + monster.speed)
-      val newEntities = state.entities.map(e => if (e == monster) updatedMonster else e)
-      state.copy(entities = newEntities)
+      // Cannot see player. Check current state.
+      monster.state match {
+        case Chasing =>
+          // Just lost sight, transition to Investigating
+          handleInvestigating(state, monster.copy(state = Investigating))
+          
+        case Investigating =>
+          handleInvestigating(state, monster)
+          
+        case Wandering =>
+          handleWandering(state, monster)
+          
+        case Idle =>
+          // Stay still, but must consume time to avoid infinite loop
+          val updated = monster.copy(nextActionTime = monster.nextActionTime + monster.speed)
+          (state, updated)
+      }
+    }
+
+    val newEntities = newState.entities.map(e => if (e == monster) updatedMonster else e)
+    newState.copy(entities = newEntities)
+  }
+
+  private def handleInvestigating(state: GameState, monster: Personaje): (GameState, Personaje) = {
+    monster.lastKnownPlayerPosition match {
+      case Some(target) if monster.position != target =>
+        val nextPos = findNextStep(state, monster.position, target)
+        if (state.map.isWalkable(nextPos.x, nextPos.y, state.entities)) {
+          val updated = monster.copy(position = nextPos, nextActionTime = monster.nextActionTime + monster.speed)
+          (state, updated)
+        } else {
+          // Blocked, just wait
+          val updated = monster.copy(nextActionTime = monster.nextActionTime + monster.speed)
+          (state, updated)
+        }
+      case _ =>
+        // Reached target or no target, transition to Wandering
+        val updated = monster.copy(state = Wandering, nextActionTime = monster.nextActionTime + monster.speed)
+        (state, updated)
+    }
+  }
+
+  private def handleWandering(state: GameState, monster: Personaje): (GameState, Personaje) = {
+    val dx = random.nextInt(3) - 1
+    val dy = random.nextInt(3) - 1
+    val nextPos = Position(monster.position.x + dx, monster.position.y + dy)
+    
+    if ((dx != 0 || dy != 0) && state.map.isWalkable(nextPos.x, nextPos.y, state.entities)) {
+      val updated = monster.copy(position = nextPos, nextActionTime = monster.nextActionTime + monster.speed)
+      (state, updated)
+    } else {
+      // Just wait
+      val updated = monster.copy(nextActionTime = monster.nextActionTime + monster.speed)
+      (state, updated)
     }
   }
 
