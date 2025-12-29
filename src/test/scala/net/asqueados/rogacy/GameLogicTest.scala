@@ -264,4 +264,18 @@ class GameLogicTest extends AnyFlatSpec with Matchers {
     // Time should still be consumed to avoid infinite loop
     newState.entities.head.nextActionTime should be > 0L
   }
+
+  "Game death logic" should "be detected when player health reaches 0" in {
+    val grid = Vector.fill(10, 20)('.')
+    val gameMap = LevelMap(grid, 20, 10)
+    // Player has 1 HP
+    val player = Player(Position(5, 5), health = 1)
+    // Goblin is adjacent and ready to act
+    val entities = Vector(Personaje("Goblin", 'g', Position(5, 4), speed = 100, nextActionTime = 0))
+    // Current time is 100, so goblin will act
+    val state = GameState(gameMap, player, entities, time = 100)
+    
+    val stateAfterMonsters = Game.processMonsters(state)
+    stateAfterMonsters.player.health should be <= 0
+  }
 }

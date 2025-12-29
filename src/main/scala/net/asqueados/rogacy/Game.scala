@@ -116,7 +116,7 @@ object Game {
         // Only allow space to clear messages
         loop(state)
       }
-    } else {
+    } else if (state.running) {
       val input = inputReader.read().toChar.toLower
       
       // Clear messages before processing new input if it's an action that takes time
@@ -128,7 +128,7 @@ object Game {
 
       val stateAfterInput = handleInput(stateWithClearedMessages, input)
       
-      if (stateAfterInput.running) {
+      if (stateAfterInput.running && stateAfterInput.player.health > 0) {
         if (stateAfterInput.time > updatedVisibilityState.time) {
           // Player took an action, now process monsters
           val stateAfterMonsters = processMonsters(stateAfterInput)
@@ -142,6 +142,10 @@ object Game {
           // No time passed (e.g. invalid input or message pagination)
           loop(stateAfterInput)
         }
+      } else if (stateAfterInput.running && stateAfterInput.player.health <= 0) {
+        // Player is dead, one last input to exit
+        val deadState = stateAfterInput.copy(running = false)
+        loop(deadState)
       }
     }
   }
