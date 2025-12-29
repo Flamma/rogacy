@@ -35,14 +35,14 @@ object Game {
         val newEntities = if (isDead) state.entities.filterNot(_ == entity)
                           else state.entities.map(e => if (e == entity) damagedEntity else e)
         
-        state.copy(entities = newEntities).addMessage(message)
+        state.copy(entities = newEntities, time = state.time + 100).addMessage(message)
       case None =>
         val tile = state.map.getTile(newPos.x, newPos.y)
         if (tile == '+') {
           val newMap = state.map.updateTile(newPos.x, newPos.y, '\'')
-          state.copy(map = newMap).addMessage("You open the door.")
+          state.copy(map = newMap, time = state.time + 100).addMessage("You open the door.")
         } else if (state.map.isWalkable(newPos.x, newPos.y, state.entities)) {
-          state.copy(player = state.player.copy(position = newPos))
+          state.copy(player = state.player.copy(position = newPos), time = state.time + 100)
         } else {
           state
         }
@@ -58,7 +58,7 @@ object Game {
     case '9' => movePlayer(state, 1, -1)
     case '1' => movePlayer(state, -1, 1)
     case '3' => movePlayer(state, 1, 1)
-    case '5' => state // Wait/Pass turn
+    case '5' => state.copy(time = state.time + 100) // Wait/Pass turn
     case '<' => handleStairs(state, isUp = true)
     case '>' => handleStairs(state, isUp = false)
     case ' ' => handleMessagePagination(state)
@@ -71,12 +71,12 @@ object Game {
     if (isUp && tile == '<') {
       val newDepth = state.depth - 1
       val (map, upPos, downPos, entities) = DungeonGenerator.generate(state.map.width, state.map.height)
-      state.copy(map = map, player = state.player.copy(position = downPos), entities = entities, depth = newDepth)
+      state.copy(map = map, player = state.player.copy(position = downPos), entities = entities, depth = newDepth, time = state.time + 100)
         .addMessage(s"You ascend to level $newDepth.")
     } else if (!isUp && tile == '>') {
       val newDepth = state.depth + 1
       val (map, upPos, downPos, entities) = DungeonGenerator.generate(state.map.width, state.map.height)
-      state.copy(map = map, player = state.player.copy(position = upPos), entities = entities, depth = newDepth)
+      state.copy(map = map, player = state.player.copy(position = upPos), entities = entities, depth = newDepth, time = state.time + 100)
         .addMessage(s"You descend to level $newDepth.")
     } else {
       state.addMessage(if (isUp) "You can't go up here." else "You can't go down here.")
@@ -115,7 +115,7 @@ object Game {
     
     // Render map
     println(state.map.render(state.player, state.entities, colorsSupported, ViewportWidth, ViewportHeight, state.viewEverything))
-    println(s"Level: ${state.depth} | WASD/Numpad: Move, < / >: Stairs, SPACE: Msg, Q: Quit")
+    println(s"Level: ${state.depth} | Time: ${state.time} | WASD/Numpad: Move, < / >: Stairs, SPACE: Msg, Q: Quit")
   }
   
   def renderMessages(state: GameState): Unit = {

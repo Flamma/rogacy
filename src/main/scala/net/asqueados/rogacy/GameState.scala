@@ -143,7 +143,8 @@ case class GameState(
   messages: Vector[String] = Vector("Welcome to Rogacy!"),
   currentMessagePage: Int = 0,
   depth: Int = 1,
-  viewEverything: Boolean = false
+  viewEverything: Boolean = false,
+  time: Long = 0L
 ) {
   def addMessage(message: String): GameState = {
     this.copy(messages = messages :+ message, currentMessagePage = 0)
