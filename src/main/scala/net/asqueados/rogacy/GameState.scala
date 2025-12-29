@@ -17,11 +17,19 @@ object Colors {
 }
 
 case class Position(x: Int, y: Int)
-case class Personaje(name: String, symbol: Char, position: Position, color: String = Colors.White, hp: Int = 3) {
+case class Personaje(
+  name: String, 
+  symbol: Char, 
+  position: Position, 
+  color: String = Colors.White, 
+  hp: Int = 3,
+  speed: Int = 100,
+  nextActionTime: Long = 0L
+) {
   def interact(): String = s"You attack the $coloredName!"
   def coloredName: String = s"$color${name.toLowerCase}${Colors.Reset}"
 }
-case class Player(position: Position, health: Int = 100, color: String = Colors.BrightWhite)
+case class Player(position: Position, health: Int = 10, color: String = Colors.BrightWhite)
 case class LevelMap(grid: Vector[Vector[Char]], width: Int, height: Int, explored: Vector[Vector[Boolean]]) {
   def getTile(x: Int, y: Int): Char = {
     if (x >= 0 && x < width && y >= 0 && y < height) grid(y)(x) else '#'
@@ -135,24 +143,39 @@ object LevelMap {
   }
 }
 
+object Constants {
+  val ViewportWidth = 80
+  val ViewportHeight = 20
+}
+
 case class GameState(
   map: LevelMap, 
   player: Player, 
   entities: Vector[Personaje], 
   running: Boolean = true,
   messages: Vector[String] = Vector("Welcome to Rogacy!"),
+  currentMessageIndex: Int = 0,
   currentMessagePage: Int = 0,
   depth: Int = 1,
   viewEverything: Boolean = false,
   time: Long = 0L
 ) {
   def addMessage(message: String): GameState = {
-    this.copy(messages = messages :+ message, currentMessagePage = 0)
+    if (messages.isEmpty) {
+      this.copy(messages = Vector(message))
+    } else {
+      val lastMsg = messages.last
+      if (lastMsg.length + message.length + 2 <= Constants.ViewportWidth) {
+        this.copy(messages = messages.init :+ (lastMsg + "  " + message))
+      } else {
+        this.copy(messages = messages :+ message)
+      }
+    }
   }
 
   def updateVisibility(): GameState = {
-    val viewportWidth = 80 // Should ideally use the constant from Game
-    val viewportHeight = 20
+    val viewportWidth = Constants.ViewportWidth
+    val viewportHeight = Constants.ViewportHeight
     val startX = scala.math.max(0, scala.math.min(map.width - viewportWidth, player.position.x - viewportWidth / 2))
     val startY = scala.math.max(0, scala.math.min(map.height - viewportHeight, player.position.y - viewportHeight / 2))
     

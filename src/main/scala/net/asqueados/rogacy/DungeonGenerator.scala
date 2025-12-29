@@ -134,8 +134,8 @@ object DungeonGenerator {
           val pos = Position(eX, eY)
           // Don't place entity on stairs
           if (grid(eY)(eX) == '.') {
-            if (random.nextBoolean()) Some(Personaje("Goblin", 'g', pos, Colors.Green))
-            else Some(Personaje("Troll", 'T', pos, Colors.Red))
+            if (random.nextBoolean()) Some(Personaje("Goblin", 'g', pos, Colors.Green, hp = 3, speed = 75))
+            else Some(Personaje("Troll", 'T', pos, Colors.Red, hp = 3, speed = 150))
           } else None
         }
       }

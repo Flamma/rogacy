@@ -6,15 +6,15 @@ import org.scalatest.matchers.should.Matchers
 class PlayerTest extends AnyFlatSpec with Matchers {
   "A Player" should "correctly initialize with position and health" in {
     val position = Position(5, 10)
-    val player = Player(position, 100)
+    val player = Player(position, 10)
     
     player.position shouldEqual position
-    player.health shouldEqual 100
+    player.health shouldEqual 10
   }
 
-  it should "have default health of 100" in {
+  it should "have default health of 10" in {
     val player = Player(Position(0, 0))
-    player.health shouldEqual 100
+    player.health shouldEqual 10
   }
 
   it should "be immutable" in {

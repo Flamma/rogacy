@@ -53,7 +53,7 @@ class LevelMapTest extends AnyFlatSpec with Matchers {
     }
     val gameMap = LevelMap(withWalls, 20, 10)
     val player = Player(Position(1, 1))
-    val entities = Vector(Personaje("Goblin", 'g', Position(5, 5)))
+    val entities = Vector(Personaje("Goblin", 'g', Position(5, 5), hp = 3, speed = 100))
     
     val rendered = gameMap.render(player, entities, viewportWidth = 20, viewportHeight = 10, viewEverything = true)
     rendered should not be empty
@@ -66,7 +66,7 @@ class LevelMapTest extends AnyFlatSpec with Matchers {
     val grid = Vector.fill(5, 5)('.')
     val gameMap = LevelMap(grid, 5, 5)
     val player = Player(Position(1, 1), color = Colors.Green)
-    val entities = Vector(Personaje("Goblin", 'g', Position(3, 3), color = Colors.Red))
+    val entities = Vector(Personaje("Goblin", 'g', Position(3, 3), color = Colors.Red, hp = 3, speed = 100))
     
     val rendered = gameMap.render(player, entities, colorsEnabled = true, viewEverything = true)
     rendered should include(Colors.Green + "@" + Colors.Reset)
@@ -96,7 +96,7 @@ class LevelMapTest extends AnyFlatSpec with Matchers {
     val withWall = grid.updated(1, grid(1).updated(2, '#'))
     val gameMap = LevelMap(withWall, 20, 10)
     val player = Player(Position(1, 1))
-    val entities = Vector(Personaje("Hidden", 'h', Position(3, 1))) // Behind a wall at (2,1)
+    val entities = Vector(Personaje("Hidden", 'h', Position(3, 1), hp = 3, speed = 100)) // Behind a wall at (2,1)
     
     // Render with LOS
     val rendered = gameMap.render(player, entities, viewportWidth = 20, viewportHeight = 10)
@@ -113,7 +113,7 @@ class LevelMapTest extends AnyFlatSpec with Matchers {
     val explored = Vector.fill(10, 20)(false).updated(1, Vector.fill(20)(false).updated(3, true))
     val gameMap = LevelMap(withWall, 20, 10, explored)
     val player = Player(Position(1, 1))
-    val entities = Vector(Personaje("Hidden", 'h', Position(3, 1))) // Behind a wall at (2,1)
+    val entities = Vector(Personaje("Hidden", 'h', Position(3, 1), hp = 3, speed = 100)) // Behind a wall at (2,1)
     
     // Render without current LOS but with explored status
     val rendered = gameMap.render(player, entities, viewportWidth = 20, viewportHeight = 10)
