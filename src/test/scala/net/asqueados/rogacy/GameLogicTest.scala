@@ -126,6 +126,25 @@ class GameLogicTest extends AnyFlatSpec with Matchers {
     newState.messages.last should include ("goblin")
   }
 
+  it should "substract HP when player hits an entity and remove it when HP reaches 0" in {
+    val grid = Vector.fill(10, 20)('.')
+    val gameMap = LevelMap(grid, 20, 10)
+    val player = Player(Position(5, 5))
+    val entities = Vector(Personaje("Goblin", 'g', Position(5, 4), hp = 2))
+    val initialState = GameState(gameMap, player, entities)
+    
+    // First hit
+    val stateAfterFirstHit = Game.movePlayer(initialState, 0, -1)
+    stateAfterFirstHit.entities.head.hp shouldEqual 1
+    stateAfterFirstHit.messages.last should include ("hit")
+    stateAfterFirstHit.messages.last should include ("1 hp left")
+    
+    // Second hit
+    val stateAfterSecondHit = Game.movePlayer(stateAfterFirstHit, 0, -1)
+    stateAfterSecondHit.entities shouldBe empty
+    stateAfterSecondHit.messages.last should include ("kill")
+  }
+
   it should "handle input correctly for movement" in {
     val grid = Vector.fill(10, 20)('.')
     val withWalls = grid.zipWithIndex.map { case (row, y) =>

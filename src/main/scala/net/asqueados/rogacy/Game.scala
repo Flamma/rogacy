@@ -26,8 +26,16 @@ object Game {
     // Check if there's an entity at the new position
     state.entities.find(_.position == newPos) match {
       case Some(entity) =>
-        // Player bumped into an entity, use its interact method
-        state.addMessage(entity.interact())
+        // Player bumped into an entity, attack it
+        val damagedEntity = entity.copy(hp = entity.hp - 1)
+        val isDead = damagedEntity.hp <= 0
+        val message = if (isDead) s"You kill the ${entity.coloredName}!" 
+                      else s"You hit the ${entity.coloredName} (${damagedEntity.hp} hp left)."
+        
+        val newEntities = if (isDead) state.entities.filterNot(_ == entity)
+                          else state.entities.map(e => if (e == entity) damagedEntity else e)
+        
+        state.copy(entities = newEntities).addMessage(message)
       case None =>
         val tile = state.map.getTile(newPos.x, newPos.y)
         if (tile == '+') {

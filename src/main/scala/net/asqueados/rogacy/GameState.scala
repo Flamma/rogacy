@@ -17,8 +17,8 @@ object Colors {
 }
 
 case class Position(x: Int, y: Int)
-case class Personaje(name: String, symbol: Char, position: Position, color: String = Colors.White) {
-  def interact(): String = s"You bump into the $coloredName!"
+case class Personaje(name: String, symbol: Char, position: Position, color: String = Colors.White, hp: Int = 3) {
+  def interact(): String = s"You attack the $coloredName!"
   def coloredName: String = s"$color${name.toLowerCase}${Colors.Reset}"
 }
 case class Player(position: Position, health: Int = 100, color: String = Colors.BrightWhite)
